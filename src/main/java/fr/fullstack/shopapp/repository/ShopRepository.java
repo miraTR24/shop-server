@@ -11,6 +11,8 @@ import java.time.LocalDate;
 public interface ShopRepository extends JpaRepository<Shop, Long> {
     Page<Shop> findByCreatedAtBetween(LocalDate dateStart, LocalDate dateEnd, Pageable pageable);
 
+    Page<Shop> findByNameContainingIgnoreCase(String name, Pageable pageable);
+
     Page<Shop> findByCreatedAtGreaterThan(LocalDate date, Pageable pageable);
 
     Page<Shop> findByCreatedAtLessThan(LocalDate date, Pageable pageable);

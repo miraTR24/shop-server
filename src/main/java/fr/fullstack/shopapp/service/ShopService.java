@@ -62,8 +62,14 @@ public class ShopService {
             Optional<Boolean> inVacations,
             Optional<String> createdBefore,
             Optional<String> createdAfter,
+            Optional<String> search,
             Pageable pageable
     ) {
+        // SEARCH
+        if (search.isPresent()) {
+            return shopRepository.findByNameContainingIgnoreCase(search.get(), pageable);
+        }
+
         // SORT
         if (sortBy.isPresent()) {
             switch (sortBy.get()) {
@@ -85,6 +91,7 @@ public class ShopService {
         // NONE
         return shopRepository.findByOrderByIdAsc(pageable);
     }
+
 
     @Transactional
     public Shop updateShop(Shop shop) throws Exception {

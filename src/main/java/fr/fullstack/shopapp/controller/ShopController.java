@@ -60,34 +60,33 @@ public class ShopController {
         }
     }
 
-    @ApiOperation(value = "Get shops (sorting and filtering are possible)")
+    @ApiOperation(value = "Get shops (sorting, filtering, and searching are possible)")
     @GetMapping
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "page",
-                              dataType = "integer",
-                              paramType = "query",
-                              value = "Results page you want to retrieve (0..N)",
-                              defaultValue = "0"),
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "Results page you want to retrieve (0..N)", defaultValue = "0"),
             @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
-                              value = "Number of records per page", defaultValue = "5"),
+                    value = "Number of records per page", defaultValue = "5"),
     })
     public ResponseEntity<Page<Shop>> getAllShops(
             Pageable pageable,
             @ApiParam(value = "To sort the shops. Possible values are 'name', 'nbProducts' and 'createdAt'",
-                      example = "name")
+                    example = "name")
             @RequestParam(required = false) Optional<String> sortBy,
             @ApiParam(value = "Define that the shops must be in vacations or not", example = "true")
             @RequestParam(required = false) Optional<Boolean> inVacations,
             @ApiParam(value = "Define that the shops must be created after this date", example = "2022-11-15")
             @RequestParam(required = false) Optional<String> createdAfter,
             @ApiParam(value = "Define that the shops must be created before this date", example = "2022-11-15")
-            @RequestParam(required = false) Optional<String> createdBefore
-
+            @RequestParam(required = false) Optional<String> createdBefore,
+            @ApiParam(value = "Search term to filter shops by name", example = "bakery")
+            @RequestParam(required = false) Optional<String> search
     ) {
         return ResponseEntity.ok(
-                service.getShopList(sortBy, inVacations, createdAfter, createdBefore, pageable)
+                service.getShopList(sortBy, inVacations, createdAfter, createdBefore, search, pageable)
         );
     }
+
 
     @ApiOperation(value = "Get a shop by id")
     @GetMapping("/{id}")
