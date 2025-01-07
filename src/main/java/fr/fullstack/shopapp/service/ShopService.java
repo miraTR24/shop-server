@@ -1,5 +1,6 @@
 package fr.fullstack.shopapp.service;
 
+import fr.fullstack.shopapp.model.OpeningHoursShop;
 import fr.fullstack.shopapp.model.Product;
 import fr.fullstack.shopapp.model.Shop;
 import fr.fullstack.shopapp.repository.ShopRepository;
@@ -14,7 +15,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ShopService {
@@ -24,18 +27,39 @@ public class ShopService {
     @Autowired
     private ShopRepository shopRepository;
 
-    @Transactional
-    public Shop createShop(Shop shop) throws Exception {
-        try {
-            Shop newShop = shopRepository.save(shop);
-            // Refresh the entity after the save. Otherwise, @Formula does not work.
-            em.flush();
-            em.refresh(newShop);
-            return newShop;
-        } catch (Exception e) {
-            throw new Exception(e.getMessage());
+    public Shop createShop(Shop shop) {
+        validateOpeningHours(shop.getOpeningHours());
+        return shopRepository.save(shop);
+    }
+
+    private void validateOpeningHours(List<OpeningHoursShop> openingHours) {
+        Map<Long, List<OpeningHoursShop>> openingHoursByDay = openingHours.stream()
+                .collect(Collectors.groupingBy(OpeningHoursShop::getDay));
+
+        for (List<OpeningHoursShop> dayOpeningHours : openingHoursByDay.values()) {
+            if (dayOpeningHours.size() > 1) {
+                checkForOverlap(dayOpeningHours);
+            }
         }
     }
+
+    private void checkForOverlap(List<OpeningHoursShop> dayOpeningHours) {
+        for (int i = 0; i < dayOpeningHours.size(); i++) {
+            for (int j = i + 1; j < dayOpeningHours.size(); j++) {
+                OpeningHoursShop hours1 = dayOpeningHours.get(i);
+                OpeningHoursShop hours2 = dayOpeningHours.get(j);
+
+                if (isOverlapping(hours1, hours2)) {
+                    throw new IllegalArgumentException("Les horaires d'ouverture se chevauchent pour le jour " + hours1.getDay());
+                }
+            }
+        }
+    }
+
+    private boolean isOverlapping(OpeningHoursShop hours1, OpeningHoursShop hours2) {
+        return !(hours1.getCloseAt().isBefore(hours2.getOpenAt()) || hours2.getCloseAt().isBefore(hours1.getOpenAt()));
+    }
+
 
     @Transactional
     public void deleteShopById(long id) throws Exception {
