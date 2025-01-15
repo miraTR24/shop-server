@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 
@@ -37,16 +38,15 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
     Page<Shop> findByOrderByNameAsc(Pageable pageable);
 
     @Query(
-            value = "SELECT *,"
-                    + "(SELECT COUNT(*) FROM products p WHERE p.shop_id = s.id) as nbProducts, "
-                    + "(SELECT COUNT(DISTINCT pc.category_id) FROM products_categories pc WHERE pc.product_id IN "
-                    + "(SELECT p.id FROM products p WHERE p.shop_id = s.id)) as nbCategories "
-                    + "FROM shops s "
-                    + "ORDER BY (SELECT COUNT(*) FROM products p WHERE p.shop_id = s.id) DESC",
-            countQuery = "SELECT * "
-                    + "FROM shops s "
-                    + "ORDER BY (SELECT COUNT(*) FROM products p WHERE p.shop_id = s.id) DESC",
+            value = "SELECT s.*, " +
+                    "(SELECT COUNT(*) FROM products p WHERE p.shop_id = s.id) as nbProducts, " +
+                    "(SELECT COUNT(DISTINCT pc.category_id) FROM products_categories pc WHERE pc.product_id IN " +
+                    "(SELECT p.id FROM products p WHERE p.shop_id = s.id)) as nbCategories " +
+                    "FROM shops s " +
+                    "ORDER BY nbProducts DESC",
+            countQuery = "SELECT COUNT(*) FROM shops s",
             nativeQuery = true
     )
     Page<Shop> findByOrderByNbProductsAsc(Pageable pageable);
+
 }
