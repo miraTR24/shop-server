@@ -4,15 +4,15 @@ import fr.fullstack.shopapp.model.OpeningHoursShop;
 import fr.fullstack.shopapp.model.Product;
 import fr.fullstack.shopapp.model.Shop;
 import fr.fullstack.shopapp.repository.ShopRepository;
-import org.hibernate.search.mapper.orm.Search;
+import fr.fullstack.shopapp.search.ShopElasticRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -27,9 +27,21 @@ public class ShopService {
     @Autowired
     private ShopRepository shopRepository;
 
-    public Shop createShop(Shop shop) {
-        validateOpeningHours(shop.getOpeningHours());
-        return shopRepository.save(shop);
+    @Autowired
+    private ShopElasticRepository shopElasticRepository;
+
+    @Transactional
+    public Shop createShop(Shop shop) throws Exception {
+   ///     validateOpeningHours(shop.getOpeningHours());
+        try {
+            Shop shop1 = shopRepository.save(shop);
+            em.flush();
+            em.refresh(shop1);
+            shopElasticRepository.save(shop1);
+            return shop1;
+        } catch (Exception e) {
+            throw new Exception(e.getMessage());
+        }
     }
 
     private void validateOpeningHours(List<OpeningHoursShop> openingHours) {
@@ -82,6 +94,7 @@ public class ShopService {
     }
 
     public Page<Shop> getShopList(
+            Optional<String> name,
             Optional<String> sortBy,
             Optional<Boolean> inVacations,
             Optional<String> createdBefore,
@@ -107,7 +120,7 @@ public class ShopService {
         }
 
         // FILTERS
-        Page<Shop> shopList = getShopListWithFilter(inVacations, createdBefore, createdAfter, pageable);
+        Page<Shop> shopList = getShopListWithFilter(name, inVacations, createdBefore, createdAfter, pageable);
         if (shopList != null) {
             return shopList;
         }
@@ -146,11 +159,25 @@ public class ShopService {
     }
 
     private Page<Shop> getShopListWithFilter(
+            Optional<String> name,
             Optional<Boolean> inVacations,
             Optional<String> createdAfter,
             Optional<String> createdBefore,
             Pageable pageable
     ) {
+
+        // Search And Filters
+        if (name.isPresent()) {
+            LocalDate after; LocalDate before;
+            after = createdAfter.map(LocalDate::parse).orElse(LocalDate.EPOCH);
+            before = createdBefore.map(LocalDate::parse).orElseGet(() -> LocalDate.EPOCH.plusYears(99));
+            if (inVacations.isEmpty()) {
+                inVacations = Optional.of(false);
+            }
+            return shopElasticRepository.findAllByNameContainingAndCreatedAtAfterAndCreatedAtBeforeAndInVacationsEquals(
+                    name.get(), after, before, inVacations.get(), pageable );
+        }
+
         if (inVacations.isPresent() && createdBefore.isPresent() && createdAfter.isPresent()) {
             return shopRepository.findByInVacationsAndCreatedAtGreaterThanAndCreatedAtLessThan(
                     inVacations.get(),

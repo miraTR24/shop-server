@@ -9,8 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,7 +34,8 @@ public class CategoryService {
     public void deleteCategoryById(long id) throws Exception {
         try {
             Category category = getCategory(id);
-            // delete nested relations with products
+            // delete nested relatio
+            // ns with products
             deleteNestedRelations(category);
             categoryRepository.deleteById(id);
         } catch (Exception e) {
