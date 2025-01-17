@@ -80,6 +80,7 @@ public class ShopService {
             // delete nested relations with products
             deleteNestedRelations(shop);
             shopRepository.deleteById(id);
+            shopElasticRepository.deleteById(id);
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }
