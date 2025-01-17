@@ -32,7 +32,7 @@ public class ShopService {
 
     @Transactional
     public Shop createShop(Shop shop) throws Exception {
-   ///     validateOpeningHours(shop.getOpeningHours());
+       validateOpeningHours(shop.getOpeningHours());
         try {
             Shop shop1 = shopRepository.save(shop);
             em.flush();
@@ -222,5 +222,13 @@ public class ShopService {
         }
 
         return null;
+    }
+
+    @Transactional
+    public void createShopWithoutChekingHours(Shop shop) throws Exception {
+            Shop shop1 = shopRepository.save(shop);
+            em.flush();
+            em.refresh(shop1);
+            shopElasticRepository.save(shop1);
     }
 }

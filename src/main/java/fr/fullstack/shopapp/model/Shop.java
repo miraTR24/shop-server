@@ -2,18 +2,10 @@ package fr.fullstack.shopapp.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Formula;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -59,6 +51,7 @@ public class Shop {
 
     @OneToMany(mappedBy = "shop", fetch = FetchType.LAZY)
     @JsonIgnore
+    @Transient
     private List<Product> products = new ArrayList<Product>();
 
     public LocalDate getCreatedAt() {
@@ -114,6 +107,7 @@ public class Shop {
     }
     @Formula(value = "(SELECT COUNT(DISTINCT pc.category_id) FROM products_categories pc WHERE pc.product_id IN " +
             "(SELECT p.id FROM products p WHERE p.shop_id = id))")
+    @Field(type = FieldType.Long)
     private Long nbCategories;
 
     public Long getNbCategories() {
