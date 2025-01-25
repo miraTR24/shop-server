@@ -2,15 +2,18 @@ package fr.fullstack.shopapp.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
 import java.time.LocalTime;
 
 @Entity
@@ -19,6 +22,7 @@ public class OpeningHoursShop {
     @Column(nullable = false)
     @JsonFormat(pattern = "HH:mm:ss")
     @NotNull(message = "CloseAt may not be null")
+    @Field(type = FieldType.Long)
     private LocalTime closeAt;
 
     @Column(nullable = false)
@@ -34,6 +38,7 @@ public class OpeningHoursShop {
     @Column(nullable = false)
     @JsonFormat(pattern = "HH:mm:ss")
     @NotNull(message = "OpenAt may not be null")
+    @Field(type = FieldType.Long)
     private LocalTime openAt;
 
     public LocalTime getCloseAt() {
